@@ -75,5 +75,73 @@ public class DBService : IDBService
         
         return res;
     }
-    
+
+    public async Task<PostBedAssignmentDTO> PostBed(PostBedAssignmentDTO createBedAssignment, string pesel)
+    {
+        var anyPatientOfPesel = await _context.Patients.Where(p => p.Pesel.Equals(pesel)).AnyAsync();
+        if (!anyPatientOfPesel)
+        {
+            throw new NotFoundException("No Patient of given Pesel");
+        }
+
+        var beds = await _context.Beds
+            .Where(b => b.BedAssignments.ToList().Exists(ba => !(
+                    ((ba.From <= createBedAssignment.From && ba.To >= createBedAssignment.From) && (ba.From <= createBedAssignment.To && ba.To <= createBedAssignment.To)) || //zaczyna wcześniej lub w i kończy przed lub w
+                    ((ba.From >= createBedAssignment.From && ba.To >= createBedAssignment.From) && (ba.From <= createBedAssignment.To && ba.To >= createBedAssignment.To)) || //zaczyna w i kończy po lub w
+                    ((ba.From >= createBedAssignment.From && ba.To >= createBedAssignment.From) && (ba.From <= createBedAssignment.To && ba.To <= createBedAssignment.To)) || // zaczyna i kończy w
+                    (ba.From <= createBedAssignment.From && ba.To >= createBedAssignment.To) // zaczyna przed i kończy po
+                    ))
+                ) //brak konfliktów w czasie
+            .ToListAsync();
+        if (beds.IsNullOrEmpty())
+        {
+            throw new NotFoundException("No Bed in that timeframe found");
+        }
+        
+        beds = beds//wybór oddziału pewnie jest ważniejszy więc powinien być sprawdzany wcześniej
+            .Where(b => b.Room.Ward.Name.Equals(createBedAssignment.wardName))
+            .ToList();
+        if (beds.IsNullOrEmpty())
+        {
+            throw new NotFoundException("No Bed in that Ward in that timeframe found");
+        }
+        
+        var chosenBed = beds
+            .Where(b => b.BedType.Name.Equals(createBedAssignment.bedTypeName))//bed Type
+            .FirstOrDefault();
+        
+        if (chosenBed != null)
+        {
+            throw new NotFoundException("No Bed of that type in that ward in that timeframe found");
+        }
+        
+        var transaction =  await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var newBedAssignment = new BedAssignment()
+            {
+                PatientPesel = pesel,
+                BedId = chosenBed.Id,
+                From = createBedAssignment.From,
+                To = createBedAssignment.To,
+            };
+            
+             await _context.BedAssignments.AddAsync(newBedAssignment);
+             await _context.SaveChangesAsync();
+
+             var patientToAddTo = await _context.Patients.Where(p => p.Pesel.Equals(pesel)).FirstOrDefaultAsync();
+             patientToAddTo.BedAssignments.Add(newBedAssignment);
+             await _context.SaveChangesAsync();
+             
+             chosenBed.BedAssignments.Add(newBedAssignment);
+             await _context.SaveChangesAsync();
+
+            
+            await transaction.CommitAsync();
+            return createBedAssignment;
+        }catch(Exception e){
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 }

@@ -1,3 +1,4 @@
+using APBD_09.DTOs;
 using APBD_09.Exceptions;
 using APBD_09.Services;
 using Microsoft.AspNetCore.Http;
@@ -22,6 +23,20 @@ namespace APBD_09.Controllers
             {
                 var patients = _dbService.GetPatients(search);
                 return Ok(patients);
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+        
+        [HttpPost("{pesel}/bedassignments")]
+        public async Task<IActionResult> Post([FromBody] PostBedAssignmentDTO createBedAssignment, [FromRoute] string pesel)
+        {
+            try
+            {
+                var bed = _dbService.PostBed(createBedAssignment, pesel);
+                return CreatedAtAction("Post", bed);
             }
             catch (NotFoundException e)
             {

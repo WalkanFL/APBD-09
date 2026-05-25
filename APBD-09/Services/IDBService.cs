@@ -8,4 +8,9 @@ public interface IDBService
     {
         return null;
     }
+
+    public async Task<PostBedAssignmentDTO> PostBed(PostBedAssignmentDTO createBedAssignment, string pesel)
+    {
+        return null;
+    }
 }
