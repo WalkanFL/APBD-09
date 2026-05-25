@@ -84,14 +84,21 @@ public class DBService : IDBService
             throw new NotFoundException("No Patient of given Pesel");
         }
 
+        var doesBedTypeExist = await _context.BedTypes.Where(bt => bt.Name.Equals(createBedAssignment.bedTypeName)).AnyAsync();
+        if (!doesBedTypeExist)
+        {
+            throw new NotFoundException("Bed Type of that name doesnt exist");
+        }
+        var doesWardExist = await _context.Wards.Where(w => w.Name.Equals(createBedAssignment.wardName)).AnyAsync();
+        if (!doesWardExist)
+        {
+            throw new NotFoundException("Ward of that name doesnt exist");
+        }
+
         var beds = await _context.Beds
-            .Where(b => b.BedAssignments.ToList().Exists(ba => !(
-                    ((ba.From <= createBedAssignment.From && ba.To >= createBedAssignment.From) && (ba.From <= createBedAssignment.To && ba.To <= createBedAssignment.To)) || //zaczyna wcześniej lub w i kończy przed lub w
-                    ((ba.From >= createBedAssignment.From && ba.To >= createBedAssignment.From) && (ba.From <= createBedAssignment.To && ba.To >= createBedAssignment.To)) || //zaczyna w i kończy po lub w
-                    ((ba.From >= createBedAssignment.From && ba.To >= createBedAssignment.From) && (ba.From <= createBedAssignment.To && ba.To <= createBedAssignment.To)) || // zaczyna i kończy w
-                    (ba.From <= createBedAssignment.From && ba.To >= createBedAssignment.To) // zaczyna przed i kończy po
-                    ))
-                ) //brak konfliktów w czasie
+            .Where(b => !b.BedAssignments
+                .Any(ba => createBedAssignment.From < ba.To && createBedAssignment.To > ba.From) //prawo De'Morgana zaprzeczenie warunku na brak konfliktu
+            ) //brak konfliktów w czasie //brak konfliktów w czasie
             .ToListAsync();
         if (beds.IsNullOrEmpty())
         {
@@ -110,7 +117,7 @@ public class DBService : IDBService
             .Where(b => b.BedType.Name.Equals(createBedAssignment.bedTypeName))//bed Type
             .FirstOrDefault();
         
-        if (chosenBed != null)
+        if (chosenBed == null)
         {
             throw new NotFoundException("No Bed of that type in that ward in that timeframe found");
         }
@@ -128,15 +135,7 @@ public class DBService : IDBService
             
              await _context.BedAssignments.AddAsync(newBedAssignment);
              await _context.SaveChangesAsync();
-
-             var patientToAddTo = await _context.Patients.Where(p => p.Pesel.Equals(pesel)).FirstOrDefaultAsync();
-             patientToAddTo.BedAssignments.Add(newBedAssignment);
-             await _context.SaveChangesAsync();
              
-             chosenBed.BedAssignments.Add(newBedAssignment);
-             await _context.SaveChangesAsync();
-
-            
             await transaction.CommitAsync();
             return createBedAssignment;
         }catch(Exception e){
