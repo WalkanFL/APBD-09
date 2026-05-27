@@ -6,6 +6,6 @@ public class PostBedAssignmentDTO
 
     public DateTime? To { get; set; }
 
-    public string bedTypeName { get; set; }
-    public string wardName { get; set; }
+    public string BedTypeName { get; set; }
+    public string WardName { get; set; }
 }

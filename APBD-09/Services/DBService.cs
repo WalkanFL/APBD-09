@@ -21,46 +21,46 @@ public class DBService : IDBService
             .Where(p => search.IsNullOrEmpty() ? true : p.FirstName.Contains(search) || p.LastName.Contains(search))
             .Select(p => new GetPatientsDTO()
             {
-                pesel = p.Pesel,
-                firstName = p.FirstName,
-                lastName = p.LastName,
-                age = p.Age,
-                sex = p.Sex,
-                admissions = p.Admissions.Select(a => new GetAdmissionsDTO()
+                Pesel = p.Pesel,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                Age = p.Age,
+                Sex = p.Sex,
+                Admissions = p.Admissions.Select(a => new GetAdmissionsDTO()
                     {
-                        id = a.Id,
-                        admissionDate = a.AdmissionDate,
-                        dischargeDate = a.DischargeDate,
-                        ward = new GetWardDTO()
+                        Id = a.Id,
+                        AdmissionDate = a.AdmissionDate,
+                        DischargeDate = a.DischargeDate,
+                        Ward = new GetWardDTO()
                         {
-                            id = a.WardId,
-                            name = a.Ward.Name,
-                            description = a.Ward.Description
+                            Id = a.WardId,
+                            Name = a.Ward.Name,
+                            Description = a.Ward.Description
                         }
                     }).ToList(),
-                bedAssignments = p.BedAssignments.Select(ba => new GetBedAssignmentsDTO()
+                BedAssignments = p.BedAssignments.Select(ba => new GetBedAssignmentsDTO()
                 {
-                    id = ba.Id,
-                    from = ba.From,
-                    to = ba.To,
-                    bed = new GetBedDTO()
+                    Id = ba.Id,
+                    From = ba.From,
+                    To = ba.To,
+                    Bed = new GetBedDTO()
                     {
-                        id = ba.BedId,
-                        bedType = new GetBedTypeDTO()
+                        Id = ba.BedId,
+                        BedType = new GetBedTypeDTO()
                         {
-                            id = ba.Bed.BedTypeId,
-                            name = ba.Bed.BedType.Name,
-                            description = ba.Bed.BedType.Description
+                            Id = ba.Bed.BedTypeId,
+                            Name = ba.Bed.BedType.Name,
+                            Description = ba.Bed.BedType.Description
                         },
-                        room = new GetRoomDTO()
+                        Room = new GetRoomDTO()
                         {
-                            id = ba.Bed.RoomId,
-                            hasTv = ba.Bed.Room.HasTv,
-                            ward = new GetWardDTO()
+                            Id = ba.Bed.RoomId,
+                            HasTv = ba.Bed.Room.HasTv,
+                            Ward = new GetWardDTO()
                             {
-                                id = ba.Bed.Room.WardId,
-                                name = ba.Bed.Room.Ward.Name,
-                                description = ba.Bed.Room.Ward.Description
+                                Id = ba.Bed.Room.WardId,
+                                Name = ba.Bed.Room.Ward.Name,
+                                Description = ba.Bed.Room.Ward.Description
                             }
                         }
                     }
@@ -84,12 +84,12 @@ public class DBService : IDBService
             throw new NotFoundException("No Patient of given Pesel");
         }
 
-        var doesBedTypeExist = await _context.BedTypes.Where(bt => bt.Name.Equals(createBedAssignment.bedTypeName)).AnyAsync();
+        var doesBedTypeExist = await _context.BedTypes.Where(bt => bt.Name.Equals(createBedAssignment.BedTypeName)).AnyAsync();
         if (!doesBedTypeExist)
         {
             throw new NotFoundException("Bed Type of that name doesnt exist");
         }
-        var doesWardExist = await _context.Wards.Where(w => w.Name.Equals(createBedAssignment.wardName)).AnyAsync();
+        var doesWardExist = await _context.Wards.Where(w => w.Name.Equals(createBedAssignment.WardName)).AnyAsync();
         if (!doesWardExist)
         {
             throw new NotFoundException("Ward of that name doesnt exist");
@@ -106,7 +106,7 @@ public class DBService : IDBService
         }
         
         beds = beds//wybór oddziału pewnie jest ważniejszy więc powinien być sprawdzany wcześniej
-            .Where(b => b.Room.Ward.Name.Equals(createBedAssignment.wardName))
+            .Where(b => b.Room.Ward.Name.Equals(createBedAssignment.WardName))
             .ToList();
         if (beds.IsNullOrEmpty())
         {
@@ -114,7 +114,7 @@ public class DBService : IDBService
         }
         
         var chosenBed = beds
-            .Where(b => b.BedType.Name.Equals(createBedAssignment.bedTypeName))//bed Type
+            .Where(b => b.BedType.Name.Equals(createBedAssignment.BedTypeName))//bed Type
             .FirstOrDefault();
         
         if (chosenBed == null)

@@ -4,75 +4,75 @@ namespace APBD_09.DTOs;
 
 public class GetPatientsDTO
 {
-    public string pesel { get; set; } = null!;
+    public string Pesel { get; set; } = null!;
 
-    public string firstName { get; set; } = null!;
+    public string FirstName { get; set; } = null!;
 
-    public string lastName { get; set; } = null!;
+    public string LastName { get; set; } = null!;
 
-    public int age { get; set; }
+    public int Age { get; set; }
 
-    public bool sex { get; set; }
+    public bool Sex { get; set; }
 
-    public ICollection<GetAdmissionsDTO> admissions { get; set; } = [];
+    public ICollection<GetAdmissionsDTO> Admissions { get; set; } = [];
 
-    public ICollection<GetBedAssignmentsDTO> bedAssignments { get; set; } = [];
+    public ICollection<GetBedAssignmentsDTO> BedAssignments { get; set; } = [];
 }
 
 public class GetAdmissionsDTO
 {
-    public int id { get; set; }
+    public int Id { get; set; }
 
-    public DateTime admissionDate { get; set; }
+    public DateTime AdmissionDate { get; set; }
 
-    public DateTime? dischargeDate { get; set; }
+    public DateTime? DischargeDate { get; set; }
 
-    public GetWardDTO ward { get; set; }
+    public GetWardDTO Ward { get; set; }
 }
 
 public class GetWardDTO
 {
-    public int id { get; set; }
+    public int Id { get; set; }
 
-    public string name { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
-    public string description { get; set; } = null!;
+    public string Description { get; set; } = null!;
 }
 
 public class GetBedAssignmentsDTO
 {
-    public int id { get; set; }
+    public int Id { get; set; }
 
-    public DateTime from { get; set; }
+    public DateTime From { get; set; }
 
-    public DateTime? to { get; set; }
+    public DateTime? To { get; set; }
 
-    public GetBedDTO bed { get; set; } = null!;
+    public GetBedDTO Bed { get; set; } = null!;
 }
 
 public class GetBedDTO
 {
-    public int id { get; set; }
+    public int Id { get; set; }
 
-    public GetBedTypeDTO bedType { get; set; } = null!;
+    public GetBedTypeDTO BedType { get; set; } = null!;
 
-    public GetRoomDTO room { get; set; } = null!;
+    public GetRoomDTO Room { get; set; } = null!;
 }
 
 public class GetBedTypeDTO()
 {
-    public int id { get; set; }
+    public int Id { get; set; }
 
-    public string name { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
-    public string description { get; set; } = null!;
+    public string Description { get; set; } = null!;
 }
 
 public class GetRoomDTO
 {
-    public string id { get; set; } = null!;
+    public string Id { get; set; } = null!;
     
-    public bool hasTv { get; set; }
+    public bool HasTv { get; set; }
 
-    public GetWardDTO ward { get; set; } = null!;
+    public GetWardDTO Ward { get; set; } = null!;
 }
